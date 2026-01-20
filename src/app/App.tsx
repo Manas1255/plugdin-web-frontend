@@ -1,35 +1,79 @@
-import { useState } from 'react'
-import reactLogo from '../assets/react.svg'
-import viteLogo from '/vite.svg'
-import '../styles/global.css'
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { AuthProvider } from '../context/AuthContext';
+import { AddServiceDraftProvider } from '../context/AddServiceDraftContext';
+import {
+  HomePage,
+  AuthPage,
+  AddServiceDetailsPage,
+  AddServicePricingPage,
+  AddServiceAvailabilityPage,
+  AddServicePhotosPage,
+  SearchResultsPage,
+  PlaceholderPage,
+} from '../pages';
+import '../styles/global.css';
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <BrowserRouter>
+      <AuthProvider>
+        <AddServiceDraftProvider>
+          <Routes>
+            {/* Public Routes */}
+            <Route path="/" element={<HomePage />} />
+            <Route path="/auth" element={<AuthPage />} />
+            <Route path="/search" element={<SearchResultsPage />} />
+            
+            {/* Placeholder Routes */}
+            <Route
+              path="/apply-as-vendor"
+              element={
+                <PlaceholderPage
+                  title="Apply as a Vendor"
+                  description="Vendor application coming soon. We'll review your application and get back to you within 2-3 business days."
+                />
+              }
+            />
+            <Route
+              path="/brand-home"
+              element={
+                <PlaceholderPage
+                  title="Brand Home"
+                  description="Brand portal coming soon. Manage your brand presence and partnerships."
+                />
+              }
+            />
+            <Route
+              path="/creator-vendor-onboarding"
+              element={
+                <PlaceholderPage
+                  title="Creator Vendor Onboarding"
+                  description="Complete onboarding coming soon. Start your journey as a creator vendor."
+                />
+              }
+            />
+
+            {/* Add Service Flow (Vendor Only) */}
+            <Route path="/add-service/details" element={<AddServiceDetailsPage />} />
+            <Route path="/add-service/pricing" element={<AddServicePricingPage />} />
+            <Route path="/add-service/availability" element={<AddServiceAvailabilityPage />} />
+            <Route path="/add-service/photos" element={<AddServicePhotosPage />} />
+
+            {/* 404 */}
+            <Route
+              path="*"
+              element={
+                <PlaceholderPage
+                  title="404 - Page Not Found"
+                  description="The page you're looking for doesn't exist."
+                />
+              }
+            />
+          </Routes>
+        </AddServiceDraftProvider>
+      </AuthProvider>
+    </BrowserRouter>
+  );
 }
 
-export default App
+export default App;

@@ -1,0 +1,30 @@
+.vendor-guard-block {
+  min-height: 60vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.vendor-guard-content {
+  text-align: center;
+  max-width: 500px;
+}
+
+.vendor-guard-content h2 {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+  color: var(--text-primary);
+}
+
+.vendor-guard-content p {
+  color: var(--text-secondary);
+  margin-bottom: 2rem;
+  line-height: 1.6;
+}
+
+.vendor-guard-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+}
