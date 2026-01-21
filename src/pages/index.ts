@@ -6,3 +6,4 @@ export { AddServiceAvailabilityPage } from './AddServiceAvailabilityPage';
 export { AddServicePhotosPage } from './AddServicePhotosPage';
 export { SearchResultsPage } from './SearchResultsPage';
 export { PlaceholderPage } from './PlaceholderPage';
+export { ApplyAsVendorPage } from './ApplyAsVendorPage';

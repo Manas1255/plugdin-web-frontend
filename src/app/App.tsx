@@ -10,6 +10,7 @@ import {
   AddServicePhotosPage,
   SearchResultsPage,
   PlaceholderPage,
+  ApplyAsVendorPage,
 } from '../pages';
 import '../styles/global.css';
 
@@ -24,16 +25,8 @@ function App() {
             <Route path="/auth" element={<AuthPage />} />
             <Route path="/search" element={<SearchResultsPage />} />
             
-            {/* Placeholder Routes */}
-            <Route
-              path="/apply-as-vendor"
-              element={
-                <PlaceholderPage
-                  title="Apply as a Vendor"
-                  description="Vendor application coming soon. We'll review your application and get back to you within 2-3 business days."
-                />
-              }
-            />
+            {/* Vendor Application */}
+            <Route path="/apply-as-vendor" element={<ApplyAsVendorPage />} />
             <Route
               path="/brand-home"
               element={
