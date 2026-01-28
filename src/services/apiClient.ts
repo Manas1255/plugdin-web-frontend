@@ -14,13 +14,19 @@ class ApiClient {
       },
     });
 
-    // Request interceptor to attach token
+    // Request interceptor to attach token and handle FormData
     this.client.interceptors.request.use(
       (config: InternalAxiosRequestConfig) => {
         const token = localStorage.getItem('token');
         if (token && config.headers) {
           config.headers.Authorization = `Bearer ${token}`;
         }
+        
+        // If data is FormData, remove Content-Type to let axios set it with boundary
+        if (config.data instanceof FormData && config.headers) {
+          delete config.headers['Content-Type'];
+        }
+        
         return config;
       },
       (error) => {

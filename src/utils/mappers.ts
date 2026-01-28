@@ -62,6 +62,79 @@ export const mapDraftToCreateServicePayload = (
 };
 
 /**
+ * Converts draft data to FormData for multipart/form-data request
+ * Complex fields (availability, pricingOptions, servicingArea, packageSpecifications) are sent as JSON strings
+ * Photos are sent as File objects under the field name 'photos'
+ */
+export const mapDraftToFormData = (
+  draft: AddServiceDraft,
+  cities: City[]
+): FormData => {
+  const formData = new FormData();
+
+  // Simple string fields
+  formData.append('listingType', draft.listingType!);
+  formData.append('category', draft.categoryName!);
+  formData.append('listingTitle', draft.title);
+  formData.append('listingDescription', draft.description);
+
+  // Convert city IDs to city names
+  const cityNames = draft.selectedCityIds.map(cityId => {
+    const city = cities.find(c => c.id === cityId);
+    return city ? city.name : '';
+  }).filter(name => name !== '');
+
+  // Complex fields as JSON strings
+  formData.append('servicingArea', JSON.stringify(cityNames));
+  formData.append('packageSpecifications', JSON.stringify(draft.selectedSpecifications));
+
+  // Pricing fields
+  if (draft.listingType === 'hourly') {
+    if (draft.pricePerHour !== null) {
+      formData.append('pricePerHour', draft.pricePerHour.toString());
+    }
+    if (draft.bookingStartInterval) {
+      formData.append('bookingStartInterval', draft.bookingStartInterval);
+    }
+  }
+
+  if (draft.pricingOptions.length > 0) {
+    formData.append('pricingOptions', JSON.stringify(draft.pricingOptions));
+  }
+
+  // Availability as JSON string
+  if (draft.availability && draft.availability.weeklySchedule) {
+    const weeklyScheduleApi = draft.availability.weeklySchedule
+      .filter(daySchedule => daySchedule.slots.length > 0)
+      .map(daySchedule => ({
+        dayOfWeek: daySchedule.day,
+        isAvailable: true,
+        timeSlots: daySchedule.slots.map(slot => ({
+          startTime: slot.start,
+          endTime: slot.end,
+        })),
+      }));
+
+    if (weeklyScheduleApi.length > 0) {
+      const availabilityData = {
+        timezone: draft.availability.timezone,
+        weeklySchedule: weeklyScheduleApi,
+      };
+      formData.append('availability', JSON.stringify(availabilityData));
+    }
+  }
+
+  // Photos as File objects - required field
+  if (draft.photos && draft.photos.length > 0) {
+    draft.photos.forEach((photo) => {
+      formData.append('photos', photo.file);
+    });
+  }
+
+  return formData;
+};
+
+/**
  * Maps API response from getServiceById to frontend Service type
  * Transforms availability format from API (dayOfWeek, timeSlots) to frontend format (day, slots)
  */

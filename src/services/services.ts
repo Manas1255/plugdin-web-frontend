@@ -76,11 +76,9 @@ export const servicesService = {
   },
 
   createServiceWithFiles: async (formData: FormData): Promise<CreateServiceResponse> => {
-    const response = await apiClient.post<CreateServiceResponse>('/api/services', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
+    // When sending FormData, axios will automatically set Content-Type with boundary
+    // The apiClient interceptor handles removing the default Content-Type header
+    const response = await apiClient.post<CreateServiceResponse>('/api/services', formData);
     return response.data;
   },
 

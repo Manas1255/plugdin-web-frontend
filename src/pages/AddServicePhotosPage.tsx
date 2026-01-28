@@ -1,9 +1,9 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Navbar, Stepper, VendorGuard, Loading } from '../components';
 import { useAddServiceDraft } from '../context/AddServiceDraftContext';
 import { servicesService } from '../services/services';
-import { mapDraftToCreateServicePayload } from '../utils/mappers';
+import { mapDraftToFormData } from '../utils/mappers';
 import type { City } from '../types';
 import './AddServiceLayout.css';
 import './AddServicePhotosPage.css';
@@ -21,12 +21,12 @@ export const AddServicePhotosPage = () => {
   const [error, setError] = useState('');
   const [cities, setCities] = useState<City[]>([]);
 
-  useState(() => {
+  useEffect(() => {
     // Load cities for mapping
     servicesService.getAllCities().then(res => {
       setCities(res.data.cities);
     });
-  });
+  }, []);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -71,25 +71,20 @@ export const AddServicePhotosPage = () => {
   const handleCreateService = async () => {
     setError('');
     
+    // Photos are required
     if (draft.photos.length === 0) {
-      const confirm = window.confirm('You have not added any photos. Do you want to proceed without photos?');
-      if (!confirm) return;
+      setError('Photos are required. Please upload at least one photo file.');
+      return;
     }
 
     setSubmitting(true);
 
     try {
-      // For now, we'll create the service without photos upload
-      // In a real implementation, you'd upload photos first and get URLs
-      // Or use multipart/form-data to send everything at once
+      // Build FormData with all fields including photo files
+      const formData = mapDraftToFormData(draft, cities);
       
-      const payload = mapDraftToCreateServicePayload(draft, cities);
-      
-      // If there are photos, we should upload them first
-      // For this MVP, we'll skip the upload and just create the service
-      // You can implement photo upload endpoint separately
-      
-      const response = await servicesService.createService(payload);
+      // Use createServiceWithFiles to send multipart/form-data
+      const response = await servicesService.createServiceWithFiles(formData);
       
       if (response.error) {
         setError(response.error.message);
