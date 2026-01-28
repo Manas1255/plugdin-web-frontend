@@ -48,7 +48,11 @@ export const AuthPage = () => {
         return;
       }
 
-      setAuthUser(response.data);
+      // Get user data from localStorage (already stored by authService.signupClient)
+      const userData = authService.getCurrentUser();
+      if (userData) {
+        setAuthUser(userData);
+      }
       
       // Redirect to intended page or home
       const redirect = searchParams.get('redirect');
@@ -72,13 +76,17 @@ export const AuthPage = () => {
         return;
       }
 
-      setAuthUser(response.data);
+      // Get user data from localStorage (already stored by authService.login)
+      const userData = authService.getCurrentUser();
+      if (userData) {
+        setAuthUser(userData);
+      }
 
       // Redirect to intended page or home
       const redirect = searchParams.get('redirect');
       
       // Check if trying to access vendor-only route
-      if (redirect?.includes('add-service') && response.data.role !== 'vendor') {
+      if (redirect?.includes('add-service') && userData?.role !== 'vendor') {
         alert('Only vendors can add services. Please apply to become a vendor.');
         navigate('/');
         return;

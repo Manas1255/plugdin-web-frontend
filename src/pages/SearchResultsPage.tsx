@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Navbar, Loading } from '../components';
 import { servicesService } from '../services/services';
 import type { Service, Category, City } from '../types';
@@ -7,6 +7,7 @@ import './SearchResultsPage.css';
 
 export const SearchResultsPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
   
   const [services, setServices] = useState<Service[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -234,7 +235,11 @@ export const SearchResultsPage = () => {
             <>
               <div className="services-grid">
                 {sortedServices.map(service => (
-                  <div key={service.id} className="service-card">
+                  <div 
+                    key={service.id} 
+                    className="service-card"
+                    onClick={() => navigate(`/services/${service.id}`)}
+                  >
                     <div className="service-image">
                       {service.photos && service.photos.length > 0 ? (
                         <img src={service.photos[0]} alt={service.listingTitle} />

@@ -1,6 +1,5 @@
-import type { AddServiceDraft } from '../types';
-import type { CreateServicePayload } from '../services/services';
-import type { City } from '../types';
+import type { AddServiceDraft, City, Service, GetServiceByIdResponse, DaySchedule } from '../types';
+import type { CreateServicePayload, CreateServiceAvailability } from '../services/services';
 
 export const mapDraftToCreateServicePayload = (
   draft: AddServiceDraft,
@@ -12,15 +11,19 @@ export const mapDraftToCreateServicePayload = (
     return city ? city.name : '';
   }).filter(name => name !== '');
 
-  // Serialize weekly schedule if exists
-  let weeklyScheduleSerialized: string[] | undefined;
+  // Build API-style weekly schedule: { dayOfWeek, isAvailable, timeSlots: [{ startTime, endTime }] }
+  let weeklyScheduleApi: CreateServiceAvailability['weeklySchedule'] | undefined;
   if (draft.availability && draft.availability.weeklySchedule) {
-    weeklyScheduleSerialized = draft.availability.weeklySchedule.map(daySchedule => {
-      const slotsStr = daySchedule.slots
-        .map(slot => `${slot.start}-${slot.end}`)
-        .join(',');
-      return `${daySchedule.day}:${slotsStr}`;
-    }).filter(str => str.includes(':') && str.split(':')[1]); // Only include days with slots
+    weeklyScheduleApi = draft.availability.weeklySchedule
+      .filter(daySchedule => daySchedule.slots.length > 0)
+      .map(daySchedule => ({
+        dayOfWeek: daySchedule.day,
+        isAvailable: true,
+        timeSlots: daySchedule.slots.map(slot => ({
+          startTime: slot.start,
+          endTime: slot.end,
+        })),
+      }));
   }
 
   const payload: CreateServicePayload = {
@@ -43,10 +46,10 @@ export const mapDraftToCreateServicePayload = (
   }
 
   // Add availability
-  if (draft.availability && weeklyScheduleSerialized && weeklyScheduleSerialized.length > 0) {
+  if (draft.availability && weeklyScheduleApi && weeklyScheduleApi.length > 0) {
     payload.availability = {
       timezone: draft.availability.timezone,
-      weeklySchedule: weeklyScheduleSerialized,
+      weeklySchedule: weeklyScheduleApi,
     };
   }
 
@@ -56,4 +59,55 @@ export const mapDraftToCreateServicePayload = (
   }
 
   return payload;
+};
+
+/**
+ * Maps API response from getServiceById to frontend Service type
+ * Transforms availability format from API (dayOfWeek, timeSlots) to frontend format (day, slots)
+ */
+export const mapApiServiceToService = (apiResponse: GetServiceByIdResponse): Service => {
+  const apiService = apiResponse.data.service;
+  
+  // Transform availability if present
+  let availability: Service['availability'] | undefined;
+  if (apiService.availability) {
+    availability = {
+      timezone: apiService.availability.timezone,
+      weeklySchedule: apiService.availability.weeklySchedule
+        .filter(day => day.isAvailable && day.timeSlots.length > 0)
+        .map(day => ({
+          day: day.dayOfWeek as DaySchedule['day'],
+          slots: day.timeSlots.map(slot => ({
+            start: slot.startTime,
+            end: slot.endTime,
+          })),
+        })),
+    };
+  }
+
+  return {
+    id: apiService.id,
+    listingType: apiService.listingType,
+    category: apiService.category,
+    listingTitle: apiService.listingTitle,
+    listingDescription: apiService.listingDescription,
+    packageSpecifications: apiService.packageSpecifications,
+    servicingArea: apiService.servicingArea,
+    pricePerHour: apiService.pricePerHour,
+    bookingStartInterval: apiService.bookingStartInterval,
+    pricingOptions: apiService.pricingOptions,
+    availability,
+    photos: apiService.photos || [],
+    vendor: {
+      id: apiService.vendor.id,
+      firstName: apiService.vendor.firstName,
+      lastName: apiService.vendor.lastName,
+      email: apiService.vendor.email,
+      profilePicture: apiService.vendor.profilePicture,
+    },
+    status: apiService.status,
+    isDeleted: apiService.isDeleted,
+    createdAt: apiService.createdAt,
+    updatedAt: apiService.updatedAt,
+  };
 };

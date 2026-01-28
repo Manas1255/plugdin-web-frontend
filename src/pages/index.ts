@@ -5,5 +5,7 @@ export { AddServicePricingPage } from './AddServicePricingPage';
 export { AddServiceAvailabilityPage } from './AddServiceAvailabilityPage';
 export { AddServicePhotosPage } from './AddServicePhotosPage';
 export { SearchResultsPage } from './SearchResultsPage';
+export { ServiceDetailsPage } from './ServiceDetailsPage';
+export { CheckoutPage } from './CheckoutPage';
 export { PlaceholderPage } from './PlaceholderPage';
 export { ApplyAsVendorPage } from './ApplyAsVendorPage';
