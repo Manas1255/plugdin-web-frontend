@@ -75,6 +75,7 @@ export interface PackageSpecificationsResponse {
 export type ListingType = 'hourly' | 'fixed';
 
 export interface PricingOption {
+  id?: string;
   name: string;
   pricePerSession: number;
   sessionLength: {
@@ -117,11 +118,14 @@ export interface Service {
   availability?: Availability;
   photos: string[];
   vendor: {
+    id?: string;
     firstName: string;
     lastName: string;
     email: string;
     profilePicture: string | null;
   };
+  status?: string;
+  isDeleted?: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -135,6 +139,50 @@ export interface SearchServicesResponse {
       page: number;
       limit: number;
       pages: number;
+    };
+  };
+  error: null | { timestamp: string; message: string; stacktrace: string | null };
+}
+
+// API response format for getServiceById
+export interface GetServiceByIdResponse {
+  statusCode: number;
+  data: {
+    service: {
+      id: string;
+      listingType: ListingType;
+      category: string;
+      listingTitle: string;
+      listingDescription: string;
+      packageSpecifications: string[];
+      servicingArea: string[];
+      pricePerHour?: number;
+      bookingStartInterval?: string;
+      pricingOptions?: PricingOption[];
+      availability?: {
+        timezone: string;
+        weeklySchedule: Array<{
+          dayOfWeek: string;
+          isAvailable: boolean;
+          timeSlots: Array<{
+            startTime: string;
+            endTime: string;
+            id: string;
+          }>;
+        }>;
+      };
+      photos: string[];
+      vendor: {
+        id: string;
+        firstName: string;
+        lastName: string;
+        email: string;
+        profilePicture: string | null;
+      };
+      status?: string;
+      isDeleted?: boolean;
+      createdAt: string;
+      updatedAt: string;
     };
   };
   error: null | { timestamp: string; message: string; stacktrace: string | null };
@@ -169,4 +217,66 @@ export interface AddServiceDraft {
   // Photos Step
   photos: PhotoFile[];
   uploadedPhotoUrls: string[];
+}
+
+// Booking Request Types
+export interface BillingDetails {
+  name: string;
+  address: {
+    line1: string;
+    line2?: string;
+    city: string;
+    state?: string;
+    postalCode: string;
+    country: string;
+  };
+}
+
+export interface BookingRequestPayload {
+  serviceId: string;
+  pricingOptionId?: string;
+  bookingStart: string; // ISO 8601 datetime
+  bookingEnd: string; // ISO 8601 datetime
+  notes?: string;
+  billingDetails?: BillingDetails;
+}
+
+export interface BookingRequestResponse {
+  statusCode: number;
+  data: {
+    bookingRequestId: string;
+    stripe: {
+      clientSecret: string;
+    };
+    pricing: {
+      subtotal: number;
+      platformFee: number;
+      tax: number;
+      total: number;
+    };
+    service: {
+      id: string;
+      title: string;
+      vendor: {
+        firstName: string;
+        lastName: string;
+      };
+    };
+    bookingStart: string;
+    bookingEnd: string;
+  };
+  error: null | { timestamp: string; message: string; stacktrace: string | null };
+}
+
+export interface CompletePaymentMethodPayload {
+  setupIntentId: string;
+}
+
+export interface CompletePaymentMethodResponse {
+  statusCode: number;
+  data: {
+    success: boolean;
+    message: string;
+  };
+  error: null | { timestamp: string; message: string; stacktrace: string | null };
 }

@@ -18,7 +18,9 @@ export const authService = {
     const response = await apiClient.post<AuthResponse>('/api/auth/signup/client', payload);
     
     // Handle token from response or headers
-    const token = response.data.data.token || 
+    // The actual API response structure has tokens.token, not data.token
+    const token = (response.data.data as any)?.tokens?.token || 
+                  (response.data.data as any)?.token ||
                   response.headers['authorization']?.replace('Bearer ', '') ||
                   response.headers['x-access-token'];
     
@@ -26,14 +28,15 @@ export const authService = {
       localStorage.setItem('token', token);
     }
     
-    // Store user data
+    // Store user data - the actual API response has data.user, not data directly
+    const userDataFromResponse = (response.data.data as any)?.user || response.data.data;
     const userData = {
-      role: response.data.data.role,
-      firstName: response.data.data.firstName,
-      lastName: response.data.data.lastName,
-      email: response.data.data.email,
-      profilePicture: response.data.data.profilePicture,
-      bio: response.data.data.bio,
+      role: userDataFromResponse.role,
+      firstName: userDataFromResponse.firstName,
+      lastName: userDataFromResponse.lastName,
+      email: userDataFromResponse.email,
+      profilePicture: userDataFromResponse.profilePicture,
+      bio: userDataFromResponse.bio,
     };
     localStorage.setItem('user', JSON.stringify(userData));
     
@@ -44,7 +47,9 @@ export const authService = {
     const response = await apiClient.post<AuthResponse>('/api/auth/login', payload);
     
     // Handle token from response or headers
-    const token = response.data.data.token || 
+    // The actual API response structure has tokens.token, not data.token
+    const token = (response.data.data as any)?.tokens?.token || 
+                  (response.data.data as any)?.token ||
                   response.headers['authorization']?.replace('Bearer ', '') ||
                   response.headers['x-access-token'];
     
@@ -52,14 +57,15 @@ export const authService = {
       localStorage.setItem('token', token);
     }
     
-    // Store user data
+    // Store user data - the actual API response has data.user, not data directly
+    const userDataFromResponse = (response.data.data as any)?.user || response.data.data;
     const userData = {
-      role: response.data.data.role,
-      firstName: response.data.data.firstName,
-      lastName: response.data.data.lastName,
-      email: response.data.data.email,
-      profilePicture: response.data.data.profilePicture,
-      bio: response.data.data.bio,
+      role: userDataFromResponse.role,
+      firstName: userDataFromResponse.firstName,
+      lastName: userDataFromResponse.lastName,
+      email: userDataFromResponse.email,
+      profilePicture: userDataFromResponse.profilePicture,
+      bio: userDataFromResponse.bio,
     };
     localStorage.setItem('user', JSON.stringify(userData));
     

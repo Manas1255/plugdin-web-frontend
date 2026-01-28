@@ -9,6 +9,8 @@ import {
   AddServiceAvailabilityPage,
   AddServicePhotosPage,
   SearchResultsPage,
+  ServiceDetailsPage,
+  CheckoutPage,
   PlaceholderPage,
   ApplyAsVendorPage,
 } from '../pages';
@@ -24,6 +26,8 @@ function App() {
             <Route path="/" element={<HomePage />} />
             <Route path="/auth" element={<AuthPage />} />
             <Route path="/search" element={<SearchResultsPage />} />
+            <Route path="/services/:serviceId" element={<ServiceDetailsPage />} />
+            <Route path="/booking/checkout" element={<CheckoutPage />} />
             
             {/* Vendor Application */}
             <Route path="/apply-as-vendor" element={<ApplyAsVendorPage />} />
