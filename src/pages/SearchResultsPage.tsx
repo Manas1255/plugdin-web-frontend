@@ -39,8 +39,9 @@ export const SearchResultsPage = () => {
   useEffect(() => {
     const categoryParam = searchParams.get('category');
     if (categoryParam && categories.length > 0) {
-      // Find the category by name (API uses category name, not slug)
-      const category = categories.find(cat => cat.name === categoryParam);
+      // Try to find by slug first (HomePage passes slug), then by name (filter updates use name)
+      const category = categories.find(cat => cat.slug === categoryParam) || 
+                       categories.find(cat => cat.name === categoryParam);
       if (category) {
         setSelectedCategories([category.slug]);
       }
@@ -67,12 +68,21 @@ export const SearchResultsPage = () => {
     setError('');
 
     try {
-      const category = searchParams.get('category');
+      const categoryParam = searchParams.get('category');
       const listingType = searchParams.get('listingType');
       const page = parseInt(searchParams.get('page') || '1');
 
+      // Convert slug to name if needed (API expects category name)
+      let categoryName = categoryParam;
+      if (categoryParam && categories.length > 0) {
+        const category = categories.find(cat => cat.slug === categoryParam);
+        if (category) {
+          categoryName = category.name;
+        }
+      }
+
       const response = await servicesService.searchServices({
-        category: category || undefined,
+        category: categoryName || undefined,
         listingType: listingType || undefined,
         page,
         limit: 12,
