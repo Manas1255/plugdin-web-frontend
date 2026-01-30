@@ -144,6 +144,27 @@ export interface SearchServicesResponse {
   error: null | { timestamp: string; message: string; stacktrace: string | null };
 }
 
+/** Pagination shape from vendor services API */
+export interface VendorServicesPagination {
+  currentPage: number;
+  totalPages: number;
+  totalItems: number;
+  itemsPerPage: number;
+  hasNextPage: boolean;
+  hasPrevPage: boolean;
+  nextPage: number | null;
+  prevPage: number | null;
+}
+
+export interface VendorServicesResponse {
+  statusCode: number;
+  data: {
+    services: Service[];
+    pagination: VendorServicesPagination;
+  };
+  error: null | { timestamp: string; message: string; stacktrace: string | null };
+}
+
 // API response format for getServiceById
 export interface GetServiceByIdResponse {
   statusCode: number;
@@ -277,6 +298,32 @@ export interface CompletePaymentMethodResponse {
   data: {
     success: boolean;
     message: string;
+  };
+  error: null | { timestamp: string; message: string; stacktrace: string | null };
+}
+
+// Vendors (list for home page)
+export interface Vendor {
+  id: string;
+  firstName: string;
+  lastName: string;
+  profilePicture: string | null;
+}
+
+export interface VendorsResponse {
+  statusCode: number;
+  data: {
+    vendors: Vendor[];
+    pagination: {
+      currentPage: number;
+      totalPages: number;
+      totalItems: number;
+      itemsPerPage: number;
+      hasNextPage: boolean;
+      hasPrevPage: boolean;
+      nextPage: number | null;
+      prevPage: number | null;
+    };
   };
   error: null | { timestamp: string; message: string; stacktrace: string | null };
 }

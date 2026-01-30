@@ -26,9 +26,12 @@ interface CheckoutState {
 interface CheckoutFormProps {
   bookingData: BookingRequestResponse['data'];
   onSuccess: () => void;
+  /** Fallbacks when API does not return service (e.g. serviceTitle, vendorName from navigation state) */
+  serviceTitleFallback?: string;
+  vendorNameFallback?: string;
 }
 
-const CheckoutForm = ({ bookingData, onSuccess }: CheckoutFormProps) => {
+const CheckoutForm = ({ bookingData, onSuccess, serviceTitleFallback, vendorNameFallback }: CheckoutFormProps) => {
   const stripe = useStripe();
   const elements = useElements();
   const [processing, setProcessing] = useState(false);
@@ -298,9 +301,11 @@ const CheckoutForm = ({ bookingData, onSuccess }: CheckoutFormProps) => {
 
             {/* Service Info */}
             <div className="summary-section">
-              <h3>{bookingData.service.title}</h3>
+              <h3>{bookingData.service?.title ?? serviceTitleFallback ?? 'Service'}</h3>
               <p className="vendor-name">
-                by {bookingData.service.vendor.firstName} {bookingData.service.vendor.lastName}
+                by {bookingData.service?.vendor
+                  ? `${bookingData.service.vendor.firstName} ${bookingData.service.vendor.lastName}`
+                  : (vendorNameFallback ?? 'Vendor')}
               </p>
             </div>
 
@@ -483,13 +488,22 @@ export const CheckoutPage = () => {
     return null;
   }
 
+  const checkoutState = location.state as CheckoutState | null;
+  const serviceTitleFallback = checkoutState?.serviceTitle;
+  const vendorNameFallback = checkoutState?.vendorName;
+
   return (
     <div className="checkout-page">
       <Navbar />
       <div className="checkout-content">
         <h1>Complete Your Booking Request</h1>
         <Elements stripe={stripePromise} options={{ clientSecret }}>
-          <CheckoutForm bookingData={bookingData} onSuccess={handleSuccess} />
+          <CheckoutForm
+            bookingData={bookingData}
+            onSuccess={handleSuccess}
+            serviceTitleFallback={serviceTitleFallback}
+            vendorNameFallback={vendorNameFallback}
+          />
         </Elements>
       </div>
     </div>

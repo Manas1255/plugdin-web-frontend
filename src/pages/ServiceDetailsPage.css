@@ -1,3 +1,5 @@
+/* ---------- React Bits–inspired: clean entrance & hover animations ---------- */
+
 .service-details-page {
   min-height: 100vh;
   background-color: var(--background);
@@ -7,6 +9,12 @@
   max-width: 1400px;
   margin: 0 auto;
   padding: 2rem 1rem;
+  animation: containerFadeIn 0.4s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes containerFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 .service-details-content {
@@ -24,6 +32,18 @@
   position: sticky;
   top: 2rem;
   align-self: start;
+  animation: slideInRight 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.2s both;
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
 /* Loading State */
@@ -38,6 +58,18 @@
 .service-details-error {
   text-align: center;
   padding: 4rem 2rem;
+  animation: headerFadeIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.1s both;
+}
+
+@keyframes headerFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .service-details-error h2 {
@@ -51,9 +83,28 @@
   margin-bottom: 2rem;
 }
 
-/* Image Gallery */
+.service-details-error .btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
+}
+
+.service-details-error .btn {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Image Gallery – entrance + hover */
 .service-image-gallery {
   margin-bottom: 2rem;
+  opacity: 0;
+  transform: translateY(16px);
+  animation: galleryEnter 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.1s forwards;
+}
+
+@keyframes galleryEnter {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .gallery-main-image {
@@ -64,12 +115,22 @@
   overflow: hidden;
   margin-bottom: 1rem;
   background-color: var(--background-secondary);
+  transition: box-shadow 0.3s ease;
+}
+
+.gallery-main-image:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
 }
 
 .gallery-main-image img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.gallery-main-image:hover img {
+  transform: scale(1.04);
 }
 
 .gallery-main-image .placeholder {
@@ -94,13 +155,18 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: transform 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
   z-index: 2;
 }
 
 .gallery-nav-btn:hover {
   background-color: white;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  transform: translateY(-50%) scale(1.08);
+}
+
+.gallery-nav-btn:active {
+  transform: translateY(-50%) scale(0.98);
 }
 
 .gallery-nav-btn.prev {
@@ -126,15 +192,18 @@
   overflow: hidden;
   cursor: pointer;
   border: 2px solid transparent;
-  transition: all 0.2s;
+  transition: transform 0.25s ease, border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .gallery-thumbnail:hover {
   border-color: var(--primary-color);
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .gallery-thumbnail.active {
   border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
 }
 
 .gallery-thumbnail img {
@@ -159,11 +228,28 @@
   color: var(--text-secondary);
 }
 
-/* Service Info Sections */
+/* Service Info Sections – staggered entrance */
 .service-info-section {
   margin-bottom: 2rem;
   padding-bottom: 2rem;
   border-bottom: 1px solid var(--border-color);
+  opacity: 0;
+  transform: translateY(16px);
+  animation: sectionEnter 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.service-info-section:nth-child(2) { animation-delay: 0.15s; }
+.service-info-section:nth-child(3) { animation-delay: 0.22s; }
+.service-info-section:nth-child(4) { animation-delay: 0.29s; }
+.service-info-section:nth-child(5) { animation-delay: 0.36s; }
+.service-info-section:nth-child(6) { animation-delay: 0.43s; }
+.service-info-section:nth-child(7) { animation-delay: 0.5s; }
+
+@keyframes sectionEnter {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .service-info-section:last-child {
@@ -209,12 +295,18 @@
   font-size: 1.1rem;
 }
 
-/* Booking Sidebar */
+/* Booking Sidebar – hover polish */
 .booking-sidebar {
   background: white;
   border: 1px solid var(--border-color);
   border-radius: 12px;
   padding: 1.5rem;
+  transition: box-shadow 0.3s ease, border-color 0.25s ease;
+}
+
+.booking-sidebar:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  border-color: rgba(99, 102, 241, 0.15);
 }
 
 .booking-sidebar h2 {
@@ -242,7 +334,7 @@
   margin-bottom: 1.5rem;
 }
 
-/* Vendor Mini Card */
+/* Vendor Mini Card – subtle hover */
 .vendor-mini-card {
   display: flex;
   align-items: center;
@@ -251,6 +343,12 @@
   background-color: var(--background-secondary);
   border-radius: 8px;
   margin-bottom: 1.5rem;
+  transition: background-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.vendor-mini-card:hover {
+  background-color: #f1f0ff;
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.08);
 }
 
 .vendor-avatar {
@@ -265,6 +363,11 @@
   font-weight: 600;
   font-size: 1.25rem;
   flex-shrink: 0;
+  transition: transform 0.25s ease;
+}
+
+.vendor-mini-card:hover .vendor-avatar {
+  transform: scale(1.05);
 }
 
 .vendor-avatar img {
@@ -306,13 +409,19 @@
   border: 1px solid var(--border-color);
   border-radius: 8px;
   font-size: 0.875rem;
-  transition: border-color 0.2s;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.booking-form-section select:hover,
+.booking-form-section input:hover {
+  border-color: var(--primary-color);
 }
 
 .booking-form-section select:focus,
 .booking-form-section input:focus {
   outline: none;
   border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
 }
 
 /* Booking Breakdown */
@@ -378,11 +487,17 @@
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .booking-submit-btn:hover {
   background-color: var(--primary-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(99, 102, 241, 0.35);
+}
+
+.booking-submit-btn:active {
+  transform: translateY(0);
 }
 
 /* Responsive */

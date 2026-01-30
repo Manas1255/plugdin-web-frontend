@@ -53,6 +53,9 @@ export const Navbar = () => {
                 {user.firstName} {user.lastName}
               </span>
               <span className="navbar-user-role">({user.role})</span>
+              <Link to="/profile/settings" className="navbar-link navbar-link-right">
+                Profile Settings
+              </Link>
               <button onClick={handleLogout} className="btn btn-secondary navbar-btn">
                 Logout
               </button>

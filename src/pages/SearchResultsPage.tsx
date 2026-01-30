@@ -27,12 +27,37 @@ export const SearchResultsPage = () => {
   const [selectedCities, setSelectedCities] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState('newest');
 
+  // Price filter inputs (local state for blur-to-apply)
+  const [minPriceInput, setMinPriceInput] = useState(searchParams.get('minPrice') ?? '');
+  const [maxPriceInput, setMaxPriceInput] = useState(searchParams.get('maxPrice') ?? '');
+
   useEffect(() => {
     loadFiltersData();
   }, []);
 
   useEffect(() => {
     searchServices();
+  }, [searchParams]);
+
+  // Initialize selected categories from URL params
+  useEffect(() => {
+    const categoryParam = searchParams.get('category');
+    if (categoryParam && categories.length > 0) {
+      // Try to find by slug first (HomePage passes slug), then by name (filter updates use name)
+      const category = categories.find(cat => cat.slug === categoryParam) ||
+                       categories.find(cat => cat.name === categoryParam);
+      if (category) {
+        setSelectedCategories([category.slug]);
+      }
+    } else {
+      setSelectedCategories([]);
+    }
+  }, [searchParams, categories]);
+
+  // Sync price inputs from URL when params change (e.g. Clear, or after blur)
+  useEffect(() => {
+    setMinPriceInput(searchParams.get('minPrice') ?? '');
+    setMaxPriceInput(searchParams.get('maxPrice') ?? '');
   }, [searchParams]);
 
   const loadFiltersData = async () => {
@@ -53,13 +78,33 @@ export const SearchResultsPage = () => {
     setError('');
 
     try {
-      const category = searchParams.get('category');
+      const categoryParam = searchParams.get('category');
       const listingType = searchParams.get('listingType');
       const page = parseInt(searchParams.get('page') || '1');
+      const minPriceParam = searchParams.get('minPrice');
+      const maxPriceParam = searchParams.get('maxPrice');
+      const startDateParam = searchParams.get('startDate');
+      const endDateParam = searchParams.get('endDate');
+
+      // Convert slug to name if needed (API expects category name)
+      let categoryName = categoryParam;
+      if (categoryParam && categories.length > 0) {
+        const category = categories.find(cat => cat.slug === categoryParam);
+        if (category) {
+          categoryName = category.name;
+        }
+      }
+
+      const minPrice = minPriceParam ? parseFloat(minPriceParam) : undefined;
+      const maxPrice = maxPriceParam ? parseFloat(maxPriceParam) : undefined;
 
       const response = await servicesService.searchServices({
-        category: category || undefined,
+        category: categoryName || undefined,
         listingType: listingType || undefined,
+        minPrice: minPrice != null && !Number.isNaN(minPrice) ? minPrice : undefined,
+        maxPrice: maxPrice != null && !Number.isNaN(maxPrice) ? maxPrice : undefined,
+        startDate: startDateParam || undefined,
+        endDate: endDateParam || undefined,
         page,
         limit: 12,
       });
@@ -78,12 +123,68 @@ export const SearchResultsPage = () => {
     }
   };
 
+  const updateFilterParams = (updates: Record<string, string | null>) => {
+    const params = new URLSearchParams(searchParams);
+    for (const [k, v] of Object.entries(updates)) {
+      if (v != null && v !== '') params.set(k, v);
+      else params.delete(k);
+    }
+    params.delete('page');
+    setSearchParams(params);
+  };
+
   const handleCategoryFilter = (categorySlug: string) => {
-    setSelectedCategories(prev => 
-      prev.includes(categorySlug)
-        ? prev.filter(c => c !== categorySlug)
-        : [...prev, categorySlug]
-    );
+    const category = categories.find(cat => cat.slug === categorySlug);
+    if (!category) return;
+
+    const newSelectedCategories = selectedCategories.includes(categorySlug)
+      ? selectedCategories.filter(c => c !== categorySlug)
+      : [...selectedCategories, categorySlug];
+
+    setSelectedCategories(newSelectedCategories);
+
+    // Update URL params to trigger API call
+    const params = new URLSearchParams(searchParams);
+    if (newSelectedCategories.length > 0) {
+      // Use the first selected category name (API expects category name, not slug)
+      const selectedCategory = categories.find(cat => cat.slug === newSelectedCategories[0]);
+      if (selectedCategory) {
+        params.set('category', selectedCategory.name);
+      }
+    } else {
+      params.delete('category');
+    }
+    params.delete('page'); // Reset to page 1 when filter changes
+    setSearchParams(params);
+  };
+
+  const handlePriceBlur = () => {
+    const min = minPriceInput.trim();
+    const max = maxPriceInput.trim();
+    const minNum = min === '' ? null : parseFloat(min);
+    const maxNum = max === '' ? null : parseFloat(max);
+    if (min !== '' && (minNum == null || Number.isNaN(minNum) || minNum < 0)) {
+      setMinPriceInput(searchParams.get('minPrice') ?? '');
+      return;
+    }
+    if (max !== '' && (maxNum == null || Number.isNaN(maxNum) || maxNum < 0)) {
+      setMaxPriceInput(searchParams.get('maxPrice') ?? '');
+      return;
+    }
+    updateFilterParams({
+      minPrice: min || null,
+      maxPrice: max || null,
+    });
+  };
+
+  const handleStartDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const v = e.target.value || null;
+    updateFilterParams({ startDate: v });
+  };
+
+  const handleEndDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const v = e.target.value || null;
+    updateFilterParams({ endDate: v });
   };
 
   const handleCityFilter = (cityId: string) => {
@@ -97,6 +198,8 @@ export const SearchResultsPage = () => {
   const clearFilters = () => {
     setSelectedCategories([]);
     setSelectedCities([]);
+    setMinPriceInput('');
+    setMaxPriceInput('');
     setSearchParams({});
   };
 
@@ -107,10 +210,22 @@ export const SearchResultsPage = () => {
   };
 
   // Client-side filtering based on selected filters
+  // Note: Category filtering is handled server-side via API, but we keep this for city filtering
   const filteredServices = services.filter(service => {
-    if (selectedCategories.length > 0 && !selectedCategories.includes(service.category)) {
-      return false;
+    // Category filtering is done server-side, but we can add client-side validation if needed
+    // Compare category names (service.category) with selected category names
+    if (selectedCategories.length > 0) {
+      const selectedCategoryNames = selectedCategories.map(slug => {
+        const cat = categories.find(c => c.slug === slug);
+        return cat?.name;
+      }).filter(Boolean);
+      
+      if (!selectedCategoryNames.includes(service.category)) {
+        return false;
+      }
     }
+    
+    // City filtering is client-side only
     if (selectedCities.length > 0) {
       const hasMatchingCity = service.servicingArea.some(area =>
         cities.find(city => city.name === area && selectedCities.includes(city.id))
@@ -155,8 +270,8 @@ export const SearchResultsPage = () => {
 
           <div className="filter-section">
             <h4 className="filter-title">Category</h4>
-            <div className="filter-options">
-              {categories.slice(0, 10).map(cat => (
+            <div className="filter-options scrollable">
+              {categories.map(cat => (
                 <label key={cat.id} className="filter-checkbox">
                   <input
                     type="checkbox"
@@ -171,15 +286,54 @@ export const SearchResultsPage = () => {
 
           <div className="filter-section">
             <h4 className="filter-title">Dates</h4>
-            <p className="filter-placeholder">Date filter coming soon...</p>
+            <div className="date-inputs">
+              <label className="date-label">
+                <span>From</span>
+                <input
+                  type="date"
+                  className="date-input"
+                  value={searchParams.get('startDate') ?? ''}
+                  max={searchParams.get('endDate') ?? undefined}
+                  onChange={handleStartDateChange}
+                />
+              </label>
+              <label className="date-label">
+                <span>To</span>
+                <input
+                  type="date"
+                  className="date-input"
+                  value={searchParams.get('endDate') ?? ''}
+                  min={searchParams.get('startDate') ?? undefined}
+                  onChange={handleEndDateChange}
+                />
+              </label>
+            </div>
           </div>
 
           <div className="filter-section">
             <h4 className="filter-title">Price</h4>
             <div className="price-inputs">
-              <input type="number" placeholder="Min" className="price-input" />
+              <input
+                type="number"
+                placeholder="Min"
+                className="price-input"
+                min={0}
+                step={1}
+                value={minPriceInput}
+                onChange={(e) => setMinPriceInput(e.target.value)}
+                onBlur={handlePriceBlur}
+              />
               <span>to</span>
-              <input type="number" placeholder="Max" className="price-input" />
+              <input
+                type="number"
+                placeholder="Max"
+                className="price-input"
+                min={0}
+                step={1}
+                value={maxPriceInput}
+                onChange={(e) => setMaxPriceInput(e.target.value)}
+                onBlur={handlePriceBlur}
+              />
             </div>
           </div>
 
@@ -234,11 +388,20 @@ export const SearchResultsPage = () => {
           ) : (
             <>
               <div className="services-grid">
-                {sortedServices.map(service => (
-                  <div 
-                    key={service.id} 
+                {sortedServices.map((service, index) => (
+                  <div
+                    key={service.id}
                     className="service-card"
+                    style={{ '--stagger-index': index } as React.CSSProperties}
                     onClick={() => navigate(`/services/${service.id}`)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        navigate(`/services/${service.id}`);
+                      }
+                    }}
+                    role="button"
+                    tabIndex={0}
                   >
                     <div className="service-image">
                       {service.photos && service.photos.length > 0 ? (
