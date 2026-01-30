@@ -117,6 +117,172 @@
   box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
 }
 
+/* Date range field & trigger */
+.search-field-date {
+  position: relative;
+}
+
+.search-date-trigger {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.875rem;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 1rem;
+  background: white;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  text-align: left;
+}
+
+.search-date-trigger:hover {
+  border-color: var(--primary-color);
+}
+
+.search-date-trigger:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+}
+
+.search-date-trigger-text {
+  flex: 1;
+}
+
+.search-date-trigger-text:empty::before {
+  content: 'Select date range';
+  color: var(--text-secondary, #64748b);
+}
+
+.search-date-trigger-icon {
+  margin-left: 0.5rem;
+  opacity: 0.7;
+}
+
+/* Date range calendar popover */
+.home-date-range-calendar {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: 0.5rem;
+  z-index: 20;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+  border: 1px solid var(--border-color);
+  padding: 1rem;
+  min-width: 280px;
+}
+
+.home-date-range-calendar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.home-date-range-month-title {
+  font-weight: 600;
+  font-size: 1rem;
+  color: var(--text-primary);
+}
+
+.home-date-range-nav {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: var(--background-secondary, #f1f5f9);
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1.25rem;
+  color: var(--text-primary);
+  transition: background 0.2s ease;
+}
+
+.home-date-range-nav:hover {
+  background: #e2e8f0;
+}
+
+.home-date-range-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+  margin-bottom: 0.5rem;
+}
+
+.home-date-range-weekday {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+.home-date-range-days {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+}
+
+.home-date-range-day {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.875rem;
+  border: none;
+  background: transparent;
+  border-radius: 8px;
+  cursor: pointer;
+  color: var(--text-primary);
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.home-date-range-day-pad {
+  cursor: default;
+}
+
+.home-date-range-day:hover:not(.home-date-range-day-pad):not(.home-date-range-day-past) {
+  background: rgba(99, 102, 241, 0.15);
+}
+
+.home-date-range-day-other {
+  color: var(--text-secondary);
+  opacity: 0.6;
+}
+
+.home-date-range-day-in-range {
+  background: rgba(99, 102, 241, 0.2);
+}
+
+.home-date-range-day-selected {
+  background: var(--primary-color);
+  color: white;
+}
+
+.home-date-range-day-selected:hover {
+  background: var(--primary-color);
+  color: white;
+}
+
+.home-date-range-day-past {
+  color: var(--text-secondary);
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.home-date-range-hint {
+  margin: 0.75rem 0 0;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  text-align: center;
+}
+
 .search-button {
   width: 100%;
   padding: 1rem;
