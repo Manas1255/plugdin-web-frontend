@@ -1,5 +1,18 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import {
+  format,
+  startOfMonth,
+  endOfMonth,
+  eachDayOfInterval,
+  addMonths,
+  subMonths,
+  isSameMonth,
+  isSameDay,
+  isWithinInterval,
+  isBefore,
+  startOfDay,
+} from 'date-fns';
 import { Navbar } from '../components';
 import { servicesService } from '../services/services';
 import { vendorsService } from '../services/vendors';
@@ -8,13 +21,114 @@ import './HomePage.css';
 
 const PLACEHOLDER_AVATAR = 'https://via.placeholder.com/400x400/e2e8f0/64748b?text=Photo';
 
+function DateRangeCalendar({
+  startDate,
+  endDate,
+  onRangeChange,
+  onClose,
+  anchorRef,
+}: {
+  startDate: string;
+  endDate: string;
+  onRangeChange: (start: string, end: string) => void;
+  onClose: () => void;
+  anchorRef: React.RefObject<HTMLDivElement | null>;
+}) {
+  const today = startOfDay(new Date());
+  const [viewMonth, setViewMonth] = useState(() => {
+    if (startDate) return startOfMonth(new Date(startDate));
+    return startOfMonth(today);
+  });
+  const [selectingEnd, setSelectingEnd] = useState(false);
+  const calendarRef = useRef<HTMLDivElement>(null);
+
+  const start = startDate ? startOfDay(new Date(startDate)) : null;
+  const end = endDate ? startOfDay(new Date(endDate)) : null;
+
+  const monthStart = startOfMonth(viewMonth);
+  const monthEnd = endOfMonth(viewMonth);
+  const days = eachDayOfInterval({ start: monthStart, end: monthEnd });
+  const padStart = monthStart.getDay();
+
+  const handleDayClick = (d: Date) => {
+    const dateStr = format(d, 'yyyy-MM-dd');
+    if (!selectingEnd) {
+      onRangeChange(dateStr, dateStr);
+      setSelectingEnd(true);
+    } else {
+      if (start && isBefore(d, start)) {
+        onRangeChange(dateStr, format(start, 'yyyy-MM-dd'));
+      } else {
+        onRangeChange(start ? format(start, 'yyyy-MM-dd') : dateStr, dateStr);
+      }
+      setSelectingEnd(false);
+      onClose();
+    }
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (
+        calendarRef.current && !calendarRef.current.contains(e.target as Node) &&
+        anchorRef.current && !anchorRef.current.contains(e.target as Node)
+      ) {
+        onClose();
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [onClose, anchorRef]);
+
+  return (
+    <div className="home-date-range-calendar" ref={calendarRef}>
+      <div className="home-date-range-calendar-header">
+        <button type="button" className="home-date-range-nav" onClick={() => setViewMonth(m => subMonths(m, 1))} aria-label="Previous month">‹</button>
+        <span className="home-date-range-month-title">{format(viewMonth, 'MMMM yyyy')}</span>
+        <button type="button" className="home-date-range-nav" onClick={() => setViewMonth(m => addMonths(m, 1))} aria-label="Next month">›</button>
+      </div>
+      <div className="home-date-range-weekdays">
+        {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+          <span key={day} className="home-date-range-weekday">{day}</span>
+        ))}
+      </div>
+      <div className="home-date-range-days">
+        {Array.from({ length: padStart }, (_, i) => (
+          <span key={`pad-${i}`} className="home-date-range-day home-date-range-day-pad" />
+        ))}
+        {days.map(day => {
+          const inRange = start && end && isWithinInterval(day, { start, end });
+          const isStart = start && isSameDay(day, start);
+          const isEnd = end && isSameDay(day, end);
+          const isCurrentMonth = isSameMonth(day, viewMonth);
+          const isPast = isBefore(day, today);
+          return (
+            <button
+              key={day.getTime()}
+              type="button"
+              className={`home-date-range-day ${!isCurrentMonth ? 'home-date-range-day-other' : ''} ${inRange ? 'home-date-range-day-in-range' : ''} ${isStart || isEnd ? 'home-date-range-day-selected' : ''} ${isPast ? 'home-date-range-day-past' : ''}`}
+              disabled={isPast}
+              onClick={() => !isPast && handleDayClick(day)}
+            >
+              {format(day, 'd')}
+            </button>
+          );
+        })}
+      </div>
+      <p className="home-date-range-hint">{selectingEnd ? 'Select end date' : 'Select start date'}</p>
+    </div>
+  );
+}
+
 export const HomePage = () => {
   const navigate = useNavigate();
   const vendorsScrollRef = useRef<HTMLDivElement>(null);
+  const dateRangeAnchorRef = useRef<HTMLDivElement>(null);
   const [categories, setCategories] = useState<Category[]>([]);
   const [vendors, setVendors] = useState<Vendor[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('');
-  const [listingType, setListingType] = useState<string>('');
+  const [startDate, setStartDate] = useState<string>('');
+  const [endDate, setEndDate] = useState<string>('');
+  const [showDateCalendar, setShowDateCalendar] = useState(false);
 
   useEffect(() => {
     loadCategories();
@@ -49,9 +163,21 @@ export const HomePage = () => {
   const handleSearch = () => {
     const params = new URLSearchParams();
     if (selectedCategory) params.set('category', selectedCategory);
-    if (listingType) params.set('listingType', listingType);
+    if (startDate) params.set('startDate', startDate);
+    if (endDate) params.set('endDate', endDate);
     navigate(`/search?${params.toString()}`);
   };
+
+  const handleDateRangeChange = (start: string, end: string) => {
+    setStartDate(start);
+    setEndDate(end);
+  };
+
+  const dateRangeLabel = startDate && endDate
+    ? `${format(new Date(startDate), 'MMM d')} – ${format(new Date(endDate), 'MMM d')}`
+    : startDate
+      ? `${format(new Date(startDate), 'MMM d')} – …`
+      : 'Select date range';
 
   return (
     <div className="home-page">
@@ -82,17 +208,27 @@ export const HomePage = () => {
                 </select>
               </div>
 
-              <div className="search-field">
-                <label className="search-label">Listing Type</label>
-                <select
-                  className="search-select"
-                  value={listingType}
-                  onChange={(e) => setListingType(e.target.value)}
+              <div className="search-field search-field-date" ref={dateRangeAnchorRef}>
+                <label className="search-label">Date range</label>
+                <button
+                  type="button"
+                  className="search-date-trigger"
+                  onClick={() => setShowDateCalendar((v) => !v)}
+                  aria-expanded={showDateCalendar}
+                  aria-haspopup="dialog"
                 >
-                  <option value="">Any Type</option>
-                  <option value="hourly">Hourly</option>
-                  <option value="fixed">Fixed Price</option>
-                </select>
+                  <span className="search-date-trigger-text">{dateRangeLabel}</span>
+                  <span className="search-date-trigger-icon" aria-hidden>▾</span>
+                </button>
+                {showDateCalendar && (
+                  <DateRangeCalendar
+                    startDate={startDate}
+                    endDate={endDate}
+                    onRangeChange={handleDateRangeChange}
+                    onClose={() => setShowDateCalendar(false)}
+                    anchorRef={dateRangeAnchorRef}
+                  />
+                )}
               </div>
             </div>
 
