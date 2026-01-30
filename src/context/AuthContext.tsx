@@ -8,6 +8,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   login: (userData: User) => void;
   logout: () => void;
+  updateUser: (userData: User) => void;
   isVendor: () => boolean;
   isClient: () => boolean;
 }
@@ -38,6 +39,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setIsAuthenticated(false);
   };
 
+  const updateUser = (userData: User) => {
+    setUser(userData);
+    localStorage.setItem('user', JSON.stringify(userData));
+  };
+
   const isVendor = () => {
     return user?.role === 'vendor';
   };
@@ -47,7 +53,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated, login, logout, isVendor, isClient }}>
+    <AuthContext.Provider value={{ user, isAuthenticated, login, logout, updateUser, isVendor, isClient }}>
       {children}
     </AuthContext.Provider>
   );

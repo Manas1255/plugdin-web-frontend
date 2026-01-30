@@ -6,11 +6,16 @@ import type {
   SearchServicesResponse,
   CreateServiceResponse,
   GetServiceByIdResponse,
+  VendorServicesResponse,
 } from '../types';
 
 export interface SearchServicesPayload {
   category?: string | null;
   listingType?: string | null;
+  minPrice?: number;
+  maxPrice?: number;
+  startDate?: string; // ISO date YYYY-MM-DD
+  endDate?: string;   // ISO date YYYY-MM-DD
   page?: number;
   limit?: number;
 }
@@ -61,6 +66,12 @@ export const servicesService = {
     const params = new URLSearchParams();
     if (payload.category) params.append('category', payload.category);
     if (payload.listingType) params.append('listingType', payload.listingType);
+    if (payload.minPrice != null && !Number.isNaN(payload.minPrice))
+      params.append('minPrice', payload.minPrice.toString());
+    if (payload.maxPrice != null && !Number.isNaN(payload.maxPrice))
+      params.append('maxPrice', payload.maxPrice.toString());
+    if (payload.startDate) params.append('startDate', payload.startDate);
+    if (payload.endDate) params.append('endDate', payload.endDate);
     if (payload.page) params.append('page', payload.page.toString());
     if (payload.limit) params.append('limit', payload.limit.toString());
 
@@ -85,5 +96,21 @@ export const servicesService = {
   getServiceById: async (serviceId: string): Promise<GetServiceByIdResponse> => {
     const response = await apiClient.get<GetServiceByIdResponse>(`/api/services/${serviceId}`);
     return response.data;
-  }
+  },
+
+  /** Get all services for a vendor by ID (paginated). Do not pass status. */
+  getServicesByVendorId: async (
+    vendorId: string,
+    page: number = 1,
+    limit: number = 10
+  ): Promise<VendorServicesResponse> => {
+    const params = new URLSearchParams();
+    params.append('page', page.toString());
+    params.append('limit', limit.toString());
+    const response = await apiClient.post<VendorServicesResponse>(
+      `/api/services/vendor/services?${params.toString()}`,
+      { vendorId }
+    );
+    return response.data;
+  },
 };

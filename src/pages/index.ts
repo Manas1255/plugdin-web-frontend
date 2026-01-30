@@ -9,3 +9,5 @@ export { ServiceDetailsPage } from './ServiceDetailsPage';
 export { CheckoutPage } from './CheckoutPage';
 export { PlaceholderPage } from './PlaceholderPage';
 export { ApplyAsVendorPage } from './ApplyAsVendorPage';
+export { ProfileSettingsPage } from './ProfileSettingsPage';
+export { VendorProfilePage } from './VendorProfilePage';

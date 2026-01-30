@@ -84,6 +84,11 @@
   font-size: 0.875rem;
 }
 
+.navbar-link-right {
+  font-size: 0.875rem;
+  white-space: nowrap;
+}
+
 .navbar-btn {
   padding: 0.5rem 1rem;
   font-size: 0.875rem;

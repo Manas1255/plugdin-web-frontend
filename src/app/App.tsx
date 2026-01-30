@@ -13,6 +13,8 @@ import {
   CheckoutPage,
   PlaceholderPage,
   ApplyAsVendorPage,
+  ProfileSettingsPage,
+  VendorProfilePage,
 } from '../pages';
 import '../styles/global.css';
 
@@ -26,8 +28,12 @@ function App() {
             <Route path="/" element={<HomePage />} />
             <Route path="/auth" element={<AuthPage />} />
             <Route path="/search" element={<SearchResultsPage />} />
+            <Route path="/vendor/:vendorId" element={<VendorProfilePage />} />
             <Route path="/services/:serviceId" element={<ServiceDetailsPage />} />
             <Route path="/booking/checkout" element={<CheckoutPage />} />
+
+            {/* Profile (authenticated) */}
+            <Route path="/profile/settings" element={<ProfileSettingsPage />} />
             
             {/* Vendor Application */}
             <Route path="/apply-as-vendor" element={<ApplyAsVendorPage />} />
